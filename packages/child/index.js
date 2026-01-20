@@ -1456,12 +1456,26 @@ This version of <i>iframe-resizer</> can auto detect the most suitable ${label} 
   let hiddenMessageShown = false
   let rafId
 
-  const sendSize = errorBoundary(
+  // DEBUG-PCI INSTRUMENTATION - wrap errorBoundary to trace calls
+  const debugErrorBoundary = (fn) => {
+    const wrapped = errorBoundary(fn)
+    return (...args) => {
+      console.log('[DEBUG-PCI errorBoundary] CALLED with triggerEvent:', args[0])
+      const result = wrapped(...args)
+      console.log('[DEBUG-PCI errorBoundary] RETURNED')
+      return result
+    }
+  }
+
+  const sendSize = debugErrorBoundary(
     (triggerEvent, triggerEventDesc, customHeight, customWidth, msg) => {
+      console.log('[DEBUG-PCI sendSize] ENTRY - triggerEvent:', triggerEvent, 'isHidden:', isHidden, 'sendPending:', sendPending, 'autoResize:', autoResize)
       consoleEvent(triggerEvent)
+      console.log('[DEBUG-PCI sendSize] after consoleEvent')
 
       switch (true) {
         case isHidden === true: {
+          console.log('[DEBUG-PCI sendSize] GUARD: isHidden=true, hiddenMessageShown=', hiddenMessageShown)
           if (hiddenMessageShown === true) break
           log('Iframe hidden - Ignored resize request')
           hiddenMessageShown = true
@@ -1473,17 +1487,20 @@ This version of <i>iframe-resizer</> can auto detect the most suitable ${label} 
         // Ignore overflowObserver here, as more efficient than using
         // mutationObserver to detect OVERFLOW_ATTR changes
         case sendPending === true && triggerEvent !== OVERFLOW_OBSERVER: {
+          console.log('[DEBUG-PCI sendSize] GUARD: sendPending=true, triggerEvent:', triggerEvent)
           purge()
           log('Resize already pending - Ignored resize request')
           break // only update once per frame
         }
 
         case !autoResize && !(triggerEvent in IGNORE_DISABLE_RESIZE): {
+          console.log('[DEBUG-PCI sendSize] GUARD: autoResize disabled, triggerEvent:', triggerEvent)
           info('Resizing disabled')
           break
         }
 
         default: {
+          console.log('[DEBUG-PCI sendSize] DEFAULT case - will call sizeIframe')
           hiddenMessageShown = false
           sendPending = true
           totalTime = performance.now()
@@ -1506,6 +1523,7 @@ This version of <i>iframe-resizer</> can auto detect the most suitable ${label} 
       }
 
       endAutoGroup()
+      console.log('[DEBUG-PCI sendSize] EXIT')
     },
   )
 

@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:dev:*)",
+      "Bash(npm run rollup:debug:*)",
+      "Bash(npx rollup:*)",
+      "Bash(npm install)"
+    ]
+  }
+}
