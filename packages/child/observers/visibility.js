@@ -4,7 +4,23 @@ import { info } from '../console'
 
 export default function visibilityObserver(callback) {
   const observer = new IntersectionObserver(
-    (entries) => callback(entries.at(-1).isIntersecting),
+    (entries) => {
+      // DEBUG-PCI: Log all entries before calling callback
+      console.log('[DEBUG-PCI IntersectionObserver] entries:', entries.map((e, i) => ({
+        index: i,
+        target: e.target.tagName,
+        isIntersecting: e.isIntersecting,
+        intersectionRatio: e.intersectionRatio,
+        boundingClientRect: e.boundingClientRect,
+        rootBounds: e.rootBounds
+      })))
+      // FIX: Use LAST entry (most recent state), not first entry
+      // IntersectionObserver batches multiple state changes chronologically
+      // entries[0] may be a transient state during DOM manipulation
+      const lastEntry = entries.at(-1).isIntersecting;
+      console.log('[DEBUG-PCI IntersectionObserver] Using last entry:', lastEntry.isIntersecting, '(of', entries.length, 'entries)')
+      callback(lastEntry.isIntersecting)
+    },
     {
       threshold: 0,
     },
