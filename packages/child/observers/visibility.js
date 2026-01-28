@@ -17,7 +17,7 @@ export default function visibilityObserver(callback) {
       // FIX: Use LAST entry (most recent state), not first entry
       // IntersectionObserver batches multiple state changes chronologically
       // entries[0] may be a transient state during DOM manipulation
-      const lastEntry = entries.at(-1).isIntersecting;
+      const lastEntry = entries.at(-1);
       console.log('[DEBUG-PCI IntersectionObserver] Using last entry:', lastEntry.isIntersecting, '(of', entries.length, 'entries)')
       callback(lastEntry.isIntersecting)
     },
